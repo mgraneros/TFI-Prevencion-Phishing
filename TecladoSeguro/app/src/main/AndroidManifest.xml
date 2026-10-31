@@ -16,5 +16,16 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.TecladoSeguro" />
-
+    <service
+        android:name=".ServicioTeclado"
+        android:label="Teclado Seguro Accesible"
+        android:permission="android.permission.BIND_INPUT_METHOD"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="android.view.InputMethod" />
+        </intent-filter>
+        <meta-data
+            android:name="android.view.im"
+            android:resource="@xml/method" />
+    </service>
 </manifest>
