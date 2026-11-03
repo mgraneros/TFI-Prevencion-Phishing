@@ -8,8 +8,8 @@ import androidx.room.Query
 interface LogFraudeDao {
 
     @Insert
-    suspend fun insertarLog(log: LogFraude)
+    fun insertarLog(log: LogFraude): Long
 
     @Query("SELECT * FROM logs_fraude ORDER BY timestamp DESC")
-    suspend fun obtenerTodosLosLogs(): List<LogFraude>
+    fun obtenerTodosLosLogs(): List<LogFraude>
 }
