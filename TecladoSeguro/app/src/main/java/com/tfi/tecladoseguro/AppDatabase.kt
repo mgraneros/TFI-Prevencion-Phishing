@@ -20,7 +20,13 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "teclado_seguro_db"
-                ).build()
+                )
+                    // --- AJUSTE CRÍTICO APLICADO ---
+                    // Permite ejecutar consultas en el hilo principal temporalmente
+                    // ya que retiramos el modificador 'suspend' del DAO.
+                    .allowMainThreadQueries()
+                    .build()
+
                 INSTANCE = instance
                 instance
             }
