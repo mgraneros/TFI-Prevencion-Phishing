@@ -1,137 +1,194 @@
 package com.tfi.tecladoseguro
 
 import android.inputmethodservice.InputMethodService
+import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.widget.Button
+import android.widget.ImageButton
+import android.widget.TextView
 
 class ServicioTeclado : InputMethodService() {
 
     private lateinit var gestorPrivacidad: GestorPrivacidad
+    private lateinit var barraAlertaDlp: TextView
+    private var isCaps = false
+    private var isCapsLocked = false
+    private var isNumericMode = false
+    private lateinit var listaBotonesLetras: List<Button>
+    private var palabraActual = StringBuilder()
+
+    private val letrasQwerty = listOf(
+        "q", "w", "e", "r", "t", "y", "u", "i", "o", "p",
+        "a", "s", "d", "f", "g", "h", "j", "k", "l",
+        "z", "x", "c", "v", "b", "n", "m"
+    )
+
+    private val caracteresNumericos = listOf(
+        "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
+        "@", "#", "$", "%", "&", "-", "+", "(", ")",
+        "*", "\"", "'", ":", ";", "!", "?"
+    )
 
     override fun onCreate() {
         super.onCreate()
-        // Inicializamos tu motor de seguridad offline apenas el teclado se carga en memoria
         gestorPrivacidad = GestorPrivacidad(this)
     }
 
-    override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
-        super.onStartInputView(info, restarting)
-        // Este evento se dispara cada vez que el usuario toca un campo de texto y el teclado aparece
-    }
-
-    // Esta función la conectaremos más adelante a la barra espaciadora o botón de "Enter"
     fun evaluarTextoEscrito(textoIngresado: String) {
-        gestorPrivacidad.procesarTexto(textoIngresado)
+        if (textoIngresado.isNotBlank()) {
+            val riesgoDetectado = gestorPrivacidad.procesarTexto(textoIngresado)
+
+            if (riesgoDetectado != null) {
+                barraAlertaDlp.text = "⚠️ BLOQUEADO: $riesgoDetectado SENSIBLE"
+                barraAlertaDlp.visibility = View.VISIBLE
+
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    barraAlertaDlp.visibility = View.GONE
+                }, 3000)
+            }
+        }
     }
 
-    override fun onCreateInputView(): android.view.View {
-        // Inflamos (dibujamos) el diseño XML
+    override fun onCreateInputView(): View {
         val vista = layoutInflater.inflate(R.layout.vista_teclado, null)
 
-        // --- MAPEO DE TECLAS ---
-        // Fila 1: Letras Superiores
-        val btnQ = vista.findViewById<android.widget.Button>(R.id.btnQ)
-        btnQ.setOnClickListener { currentInputConnection?.commitText("Q", 1) }
+        barraAlertaDlp = vista.findViewById(R.id.barraAlertaDlp)
 
-        val btnW = vista.findViewById<android.widget.Button>(R.id.btnW)
-        btnW.setOnClickListener { currentInputConnection?.commitText("W", 1) }
+        val botonesLetrasIds = listOf(
+            R.id.btnQ, R.id.btnW, R.id.btnE, R.id.btnR, R.id.btnT, R.id.btnY, R.id.btnU, R.id.btnI, R.id.btnO, R.id.btnP,
+            R.id.btnA, R.id.btnS, R.id.btnD, R.id.btnF, R.id.btnG, R.id.btnH, R.id.btnJ, R.id.btnK, R.id.btnL,
+            R.id.btnZ, R.id.btnX, R.id.btnC, R.id.btnV, R.id.btnB, R.id.btnN, R.id.btnM
+        )
 
-        val btnE = vista.findViewById<android.widget.Button>(R.id.btnE)
-        btnE.setOnClickListener { currentInputConnection?.commitText("E", 1) }
+        listaBotonesLetras = botonesLetrasIds.map { vista.findViewById<Button>(it) }
 
-        val btnR = vista.findViewById<android.widget.Button>(R.id.btnR)
-        btnR.setOnClickListener { currentInputConnection?.commitText("R", 1) }
+        for (boton in listaBotonesLetras) {
+            boton.setOnClickListener {
+                val textoAEscribir = boton.text.toString()
+                currentInputConnection?.commitText(textoAEscribir, 1)
 
-        val btnT = vista.findViewById<android.widget.Button>(R.id.btnT)
-        btnT.setOnClickListener { currentInputConnection?.commitText("T", 1) }
+                palabraActual.append(textoAEscribir)
 
-        val btnY = vista.findViewById<android.widget.Button>(R.id.btnY)
-        btnY.setOnClickListener { currentInputConnection?.commitText("Y", 1) }
+                if (palabraActual.length > 60) {
+                    palabraActual.delete(0, palabraActual.length - 60)
+                }
 
-        val btnU = vista.findViewById<android.widget.Button>(R.id.btnU)
-        btnU.setOnClickListener { currentInputConnection?.commitText("U", 1) }
+                if (!isNumericMode && isCaps && !isCapsLocked) {
+                    isCaps = false
+                    actualizarTextosBotones()
+                }
 
-        val btnI = vista.findViewById<android.widget.Button>(R.id.btnI)
-        btnI.setOnClickListener { currentInputConnection?.commitText("I", 1) }
-
-        val btnO = vista.findViewById<android.widget.Button>(R.id.btnO)
-        btnO.setOnClickListener { currentInputConnection?.commitText("O", 1) }
-
-        val btnP = vista.findViewById<android.widget.Button>(R.id.btnP)
-        btnP.setOnClickListener { currentInputConnection?.commitText("P", 1) }
-
-        // --- Fila 2: Letras Medias ---
-        val btnA = vista.findViewById<android.widget.Button>(R.id.btnA)
-        btnA.setOnClickListener { currentInputConnection?.commitText("A", 1) }
-        val btnS = vista.findViewById<android.widget.Button>(R.id.btnS)
-        btnS.setOnClickListener { currentInputConnection?.commitText("S", 1) }
-        val btnD = vista.findViewById<android.widget.Button>(R.id.btnD)
-        btnD.setOnClickListener { currentInputConnection?.commitText("D", 1) }
-        val btnF = vista.findViewById<android.widget.Button>(R.id.btnF)
-        btnF.setOnClickListener { currentInputConnection?.commitText("F", 1) }
-        val btnG = vista.findViewById<android.widget.Button>(R.id.btnG)
-        btnG.setOnClickListener { currentInputConnection?.commitText("G", 1) }
-        val btnH = vista.findViewById<android.widget.Button>(R.id.btnH)
-        btnH.setOnClickListener { currentInputConnection?.commitText("H", 1) }
-        val btnJ = vista.findViewById<android.widget.Button>(R.id.btnJ)
-        btnJ.setOnClickListener { currentInputConnection?.commitText("J", 1) }
-        val btnK = vista.findViewById<android.widget.Button>(R.id.btnK)
-        btnK.setOnClickListener { currentInputConnection?.commitText("K", 1) }
-        val btnL = vista.findViewById<android.widget.Button>(R.id.btnL)
-        btnL.setOnClickListener { currentInputConnection?.commitText("L", 1) }
-
-        // --- Fila 3: Letras Inferiores ---
-        val btnZ = vista.findViewById<android.widget.Button>(R.id.btnZ)
-        btnZ.setOnClickListener { currentInputConnection?.commitText("Z", 1) }
-        val btnX = vista.findViewById<android.widget.Button>(R.id.btnX)
-        btnX.setOnClickListener { currentInputConnection?.commitText("X", 1) }
-        val btnC = vista.findViewById<android.widget.Button>(R.id.btnC)
-        btnC.setOnClickListener { currentInputConnection?.commitText("C", 1) }
-        val btnV = vista.findViewById<android.widget.Button>(R.id.btnV)
-        btnV.setOnClickListener { currentInputConnection?.commitText("V", 1) }
-        val btnB = vista.findViewById<android.widget.Button>(R.id.btnB)
-        btnB.setOnClickListener { currentInputConnection?.commitText("B", 1) }
-        val btnN = vista.findViewById<android.widget.Button>(R.id.btnN)
-        btnN.setOnClickListener { currentInputConnection?.commitText("N", 1) }
-        val btnM = vista.findViewById<android.widget.Button>(R.id.btnM)
-        btnM.setOnClickListener { currentInputConnection?.commitText("M", 1) }
-
-        // --- Fila 4: Puntuación y Espacio ---
-        val btnComa = vista.findViewById<android.widget.Button>(R.id.btnComa)
-        btnComa.setOnClickListener { currentInputConnection?.commitText(",", 1) }
-        val btnPunto = vista.findViewById<android.widget.Button>(R.id.btnPunto)
-        btnPunto.setOnClickListener { currentInputConnection?.commitText(".", 1) }
-        val btnEspacio = vista.findViewById<android.widget.Button>(R.id.btnEspacio)
-        btnEspacio.setOnClickListener {
-            currentInputConnection?.commitText(" ", 1)
-            }    // Aquí en el futuro llamaremos a tu evaluador del Motor DLP
-
-            // --- Botones de Acción Especiales ---
-
-            // Tecla Borrar (Es un ImageButton y envía el evento KEYCODE_DEL)
-            val btnBorrar = vista.findViewById<android.widget.ImageButton>(R.id.btnBorrar)
-            btnBorrar.setOnClickListener {
-                currentInputConnection?.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_DEL))
-                currentInputConnection?.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_DEL))
+                // NUEVO: Evaluación DLP en tiempo real en cada pulsación
+                evaluarTextoEscrito(palabraActual.toString())
             }
-
-            // Tecla Enter (Es un ImageButton y envía el evento KEYCODE_ENTER)
-            val btnEnter = vista.findViewById<android.widget.ImageButton>(R.id.btnEnter)
-            btnEnter.setOnClickListener {
-                currentInputConnection?.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_ENTER))
-                currentInputConnection?.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_ENTER))
-            }
-
-            // Tecla Mayúsculas (Es un ImageButton - Estructura base preparada para futura lógica)
-            val btnMayus = vista.findViewById<android.widget.ImageButton>(R.id.btnMayus)
-            btnMayus.setOnClickListener {
-                // TODO: Alternar estado de letras a MAYÚSCULAS
-            }
-
-            // Tecla Símbolos (Es un Button normal - Estructura base preparada)
-            val btnSimbolos = vista.findViewById<android.widget.Button>(R.id.btnSimbolos)
-            btnSimbolos.setOnClickListener {
-                // TODO: Cambiar vista a teclado numérico/símbolos
         }
+
+        actualizarTextosBotones()
+
+        vista.findViewById<Button>(R.id.btnComa).setOnClickListener {
+            currentInputConnection?.commitText(",", 1)
+            palabraActual.append(",")
+            evaluarTextoEscrito(palabraActual.toString())
+        }
+
+        vista.findViewById<Button>(R.id.btnPunto).setOnClickListener {
+            currentInputConnection?.commitText(".", 1)
+            palabraActual.append(".")
+            evaluarTextoEscrito(palabraActual.toString())
+        }
+
+        vista.findViewById<Button>(R.id.btnEspacio).setOnClickListener {
+            currentInputConnection?.commitText(" ", 1)
+            palabraActual.append(" ")
+
+            if (palabraActual.length > 60) {
+                palabraActual.delete(0, palabraActual.length - 60)
+            }
+
+            evaluarTextoEscrito(palabraActual.toString())
+        }
+
+        val btnBorrar = vista.findViewById<ImageButton>(R.id.btnBorrar)
+        val handlerBorrado = android.os.Handler(android.os.Looper.getMainLooper())
+        var borrando = false
+
+        val accionBorrar = object : Runnable {
+            override fun run() {
+                if (borrando) {
+                    currentInputConnection?.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_DEL))
+                    currentInputConnection?.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_DEL))
+
+                    if (palabraActual.isNotEmpty()) {
+                        palabraActual.deleteCharAt(palabraActual.length - 1)
+                    }
+                    handlerBorrado.postDelayed(this, 100)
+                }
+            }
+        }
+
+        btnBorrar.setOnTouchListener { _, event ->
+            when (event.action) {
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    borrando = true
+                    handlerBorrado.post(accionBorrar)
+                    true
+                }
+                android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
+                    borrando = false
+                    handlerBorrado.removeCallbacks(accionBorrar)
+                    true
+                }
+                else -> false
+            }
+        }
+
+        vista.findViewById<ImageButton>(R.id.btnEnter).setOnClickListener {
+            currentInputConnection?.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_ENTER))
+            currentInputConnection?.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_ENTER))
+
+            evaluarTextoEscrito(palabraActual.toString())
+        }
+
+        val btnMayus = vista.findViewById<ImageButton>(R.id.btnMayus)
+        btnMayus.setOnClickListener {
+            if (isCapsLocked) {
+                isCapsLocked = false
+                isCaps = false
+            } else {
+                isCaps = !isCaps
+            }
+            actualizarTextosBotones()
+        }
+        btnMayus.setOnLongClickListener {
+            isCapsLocked = true
+            isCaps = true
+            actualizarTextosBotones()
+            true
+        }
+
+        val btnSimbolos = vista.findViewById<Button>(R.id.btnSimbolos)
+        btnSimbolos.setOnClickListener {
+            isNumericMode = !isNumericMode
+            btnSimbolos.text = if (isNumericMode) "ABC" else "?123"
+
+            if (!isNumericMode) {
+                isCaps = false
+                isCapsLocked = false
+            }
+            actualizarTextosBotones()
+        }
+
         return vista
+    }
+
+    private fun actualizarTextosBotones() {
+        for ((index, boton) in listaBotonesLetras.withIndex()) {
+            if (isNumericMode) {
+                boton.text = caracteresNumericos[index]
+            } else {
+                val letra = letrasQwerty[index]
+                boton.text = if (isCaps) letra.uppercase() else letra.lowercase()
+            }
+        }
     }
 }
