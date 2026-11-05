@@ -69,8 +69,8 @@ class ServicioTeclado : InputMethodService() {
 
                 palabraActual.append(textoAEscribir)
 
-                if (palabraActual.length > 60) {
-                    palabraActual.delete(0, palabraActual.length - 60)
+                if (palabraActual.length > 150) {
+                    palabraActual.delete(0, palabraActual.length - 150)
                 }
 
                 if (!isNumericMode && isCaps && !isCapsLocked) {
@@ -101,8 +101,8 @@ class ServicioTeclado : InputMethodService() {
             currentInputConnection?.commitText(" ", 1)
             palabraActual.append(" ")
 
-            if (palabraActual.length > 60) {
-                palabraActual.delete(0, palabraActual.length - 60)
+            if (palabraActual.length > 150) {
+                palabraActual.delete(0, palabraActual.length - 150)
             }
 
             evaluarTextoEscrito(palabraActual.toString())
