@@ -31,6 +31,16 @@
                 android:resource="@xml/method" />
         </service>
 
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"> <!-- O el tema que estés usando -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
     </application> <!-- Se cierra la aplicación después del servicio -->
 
 </manifest>

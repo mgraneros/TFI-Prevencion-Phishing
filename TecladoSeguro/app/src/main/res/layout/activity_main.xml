@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F0F4F8"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Teclado Seguro"
+            android:textSize="34sp"
+            android:textStyle="bold"
+            android:textColor="#102A43"
+            android:letterSpacing="-0.02"
+            android:layout_marginBottom="4dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Protección activa y alertas SMS"
+            android:textSize="16sp"
+            android:textColor="#627D98"
+            android:layout_marginBottom="32dp"/>
+
+        <!-- Tarjeta Contactos -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="6dp"
+            app:cardBackgroundColor="#FFFFFF"
+            android:layout_marginBottom="24dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Contactos de Emergencia"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#102A43"
+                    android:layout_marginBottom="20dp"/>
+
+                <!-- Campo Número Principal (Redondeado suave) -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="55dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="#F0F4F8"
+                    android:layout_marginBottom="16dp">
+
+                    <EditText
+                        android:id="@+id/etNumeroPrincipal"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@null"
+                        android:hint="Número Principal (Ej: 112406...)"
+                        android:textColorHint="#9FB3C8"
+                        android:textColor="#102A43"
+                        android:inputType="phone"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:textSize="16sp"/>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Campo Número Respaldo -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="55dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="#F0F4F8">
+
+                    <EditText
+                        android:id="@+id/etNumeroRespaldo"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@null"
+                        android:hint="Número Respaldo (Opcional)"
+                        android:textColorHint="#9FB3C8"
+                        android:textColor="#102A43"
+                        android:inputType="phone"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:textSize="16sp"/>
+                </androidx.cardview.widget.CardView>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Tarjeta Tamaño -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="6dp"
+            app:cardBackgroundColor="#FFFFFF"
+            android:layout_marginBottom="36dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tamaño del Teclado"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#102A43"
+                    android:layout_marginBottom="16dp"/>
+
+                <RadioGroup
+                    android:id="@+id/rgTamanoTeclado"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <RadioButton
+                        android:id="@+id/rbNormal"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:text="Normal (Estándar)"
+                        android:textSize="16sp"
+                        android:textColor="#334E68"
+                        android:buttonTint="#0A66C2"/>
+
+                    <RadioButton
+                        android:id="@+id/rbGrande"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:text="Grande (+ Accesibilidad)"
+                        android:textSize="16sp"
+                        android:textColor="#334E68"
+                        android:buttonTint="#0A66C2"/>
+
+                    <RadioButton
+                        android:id="@+id/rbExtraGrande"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:text="Extra Grande (Máxima Visión)"
+                        android:textSize="16sp"
+                        android:textColor="#334E68"
+                        android:buttonTint="#0A66C2"/>
+                </RadioGroup>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Botón Guardar Premium -->
+        <Button
+            android:id="@+id/btnGuardar"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="GUARDAR CONFIGURACIÓN"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:letterSpacing="0.05"
+            app:backgroundTint="#0A66C2"
+            app:rippleColor="#63B3ED"
+            app:cornerRadius="14dp"
+            app:elevation="4dp" />
+
+
+    </LinearLayout>
+</ScrollView>

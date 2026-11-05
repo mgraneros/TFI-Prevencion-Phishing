@@ -1,0 +1,169 @@
+Bitácora del desarrollo Backend Teclado virtual
+
+Fases 1 y 2: Prototipado del Motor DLP (Python)
+
+Desarrollo del motor de Data Loss Prevention (DLP) utilizando expresiones regulares (Regex) para identificar datos sensibles (PAN, CBU, DNI).
+
+Integración del algoritmo de Luhn para validación matemática de tarjetas de crédito/débito.
+
+Creación de un diccionario local de palabras clave para detectar posibles escenarios de phishing e ingeniería social.
+
+Definición de la arquitectura offline-first: procesamiento estrictamente local sin llamadas a APIs externas para mitigar riesgos de exfiltración (keyloggers) y reducir latencias en la escritura.
+
+Fase 3: Migración a Entorno Móvil (Android/Kotlin)
+
+Configuración del entorno de desarrollo en Android Studio y enlace del proyecto con el repositorio local.
+
+Traducción del MotorDlp desde Python hacia Kotlin, adaptando la lógica de detección al ecosistema móvil.
+
+Implementación de pruebas unitarias (Unit Tests) automatizadas para verificar la precisión del motor DLP en Android.
+
+Primer hito de respaldo: commit y push del proyecto base a la rama main en GitHub.
+
+Fase 4: Persistencia Segura y Privacidad por Diseño (Android/Room)
+
+Configuración avanzada de Gradle, integrando Kotlin Symbol Processing (KSP) y las dependencias de Room Database tras resolver conflictos de compatibilidad.
+
+Creación de la Entidad LogFraude: definición del esquema de la tabla para SQLite.
+
+Creación de LogFraudeDao: programación de las interfaces de acceso a datos utilizando corrutinas (suspend fun) para ejecutar operaciones de inserción de forma asíncrona, evitando bloqueos en la interfaz visual del teclado.
+
+Construcción de AppDatabase: implementación del patrón Singleton para inicializar y gestionar de forma eficiente la conexión única a la base de datos local (teclado_seguro_db).
+
+Desarrollo de GestorPrivacidad: creación de la clase orquestadora que intercepta el texto, invoca al MotorDlp y conecta con la base de datos. Se implementó la lógica estricta de ofuscación de datos sensibles antes del almacenamiento, garantizando el principio de privacy-by-design.
+
+Fase 4.1: Sistema de Alertas Tempranas (Offline)
+
+Solicitud de permisos nativos (SEND_SMS) en el Manifest con declaración de hardware opcional (telephony).
+Creación de la clase NotificadorEmergencia utilizando SmsManager para envío de alertas vía red celular.
+Integración con GestorPrivacidad para disparar notificaciones offline inmediatas al contacto de emergencia, manteniendo el enfoque privacy-by-design.
+
+
+Fase 5: Servicio Base del Teclado (InputMethodService)
+
+Creación de la clase ServicioTeclado heredando de InputMethodService para vincular el ciclo de vida del teclado con el sistema operativo Android.
+Instanciación del GestorPrivacidad dentro del teclado para procesar de manera segura la entrada de texto.
+Definición de los metadatos del teclado en res/xml/method.xml (estableciendo el idioma es_AR y el modo de teclado).
+Registro oficial del servicio en el AndroidManifest.xml mediante la etiqueta <service>, configurando los permisos estrictos de BIND_INPUT_METHOD y el intent-filter correspondiente.
+
+Fase 5 Completada)
+
+Diseño Visual Finalizado: Se crearon y asignaron iconos vectoriales gruesos y accesibles (ic_mayus, ic_borrar, ic_enter) para las teclas especiales, integrándolos en vista_teclado.xml como ImageButton.
+
+Cerebro del Teclado (ServicioTeclado.kt):
+
+Se infló la vista personalizada sobrescribiendo el método nativo onCreateInputView().
+
+Se mapearon exitosamente todas las teclas alfabéticas (A-Z) utilizando la interfaz de Android commitText().
+
+Se implementó la lógica de eventos del sistema (sendKeyEvent) para simular las teclas físicas de retroceso y enter (KEYCODE_DEL y KEYCODE_ENTER).
+
+Corrección de Errores de Compilación (Troubleshooting):
+
+Manifest: Se corrigió la estructura del AndroidManifest.xml, anidando correctamente el servicio del teclado dentro de la etiqueta <application>.
+
+Room / KSP: Se solucionó el error unexpected jvm signature V en LogFraudeDao.kt especificando el tipo de retorno : Long en el @Insert. Posteriormente, se removió temporalmente la asincronía (suspend) de las funciones para evitar conflictos del procesador KSP con Continuation.
+
+XML Resources: Se resolvió el error resource attr/123 not found escapando correctamente el símbolo de interrogación en el texto del botón de símbolos (\?123).
+
+Validación: Los tests unitarios (MotorDlpTest.pruebaDeteccionFraudeCompleto) se ejecutaron con éxito tras las correcciones estructurales.
+
+
+📝 Bitácora de Trabajo - Fase 6 (Completada)
+Optimización de Usabilidad Frontend:
+
+Implementación de borrado continuo mediante setOnTouchListener y un Handler de 100ms, replicando el estándar UX de Android.
+
+Creación de un buffer de memoria de corto plazo (60 caracteres) para evaluación de contexto sin sobrecargar la RAM del dispositivo.
+
+Desarrollo de Alerta Nativa (Bypass de Restricciones OS):
+
+Identificación y evasión del bloqueo silencioso de notificaciones (Toast) de las versiones modernas de Android para servicios en segundo plano.
+
+Diseño e inyección de una barra de alerta roja nativa (TextView) directamente en el XML del teclado, garantizando 100% de visibilidad y accesibilidad para el adulto mayor.
+
+Refactorización del Motor DLP (Evaluación en Tiempo Real):
+
+Transición de una validación post-tipeo (al presionar espacio) a un escaneo activo en tiempo real tras cada pulsación.
+
+Rediseño de las Expresiones Regulares para aplicar tolerancia a espacios y guiones intermedios, permitiendo la lectura de secuencias segmentadas (ej. bloques de 4 dígitos).
+
+Ajuste matemático del algoritmo de Luhn para evaluar exclusivamente longitudes reales del mercado argentino (15 dígitos para Amex, 16 para Visa/Mastercard), eliminando falsos positivos en secuencias de 14 dígitos.
+
+📝 Bitácora de Desarrollo - Fase 7: Mitigación DLP vía SMS
+Objetivo: Implementar la mitigación activa enviando una alerta SMS silenciosa a un contacto de confianza (+5491124066013) cuando el Motor DLP detecta un riesgo de nivel "Crítico" (Ingeniería Social + CBU/Tarjeta) directamente desde el teclado.
+
+Archivos Modificados:
+
+GestorPrivacidad.kt: Lógica de envío de SMS, auditoría de módem y manejo de base de datos.
+
+ServicioTeclado.kt: Ampliación del buffer de memoria temporal.
+
+Desarrollo, Obstáculos y Soluciones:
+
+Ampliación del Buffer de Memoria del Teclado:
+
+Problema: El Motor DLP no disparaba la alerta de nivel "Crítico" con textos largos. La memoria temporal del teclado estaba configurada en 60 caracteres. Al escribir frases largas como "urgente te paso mi cbu 1111...", la palabra clave ("urgente") se borraba antes de terminar de escribir el CBU, resultando en un riesgo "Alto" (solo CBU) en lugar de "Crítico".
+
+Solución: Se amplió el límite de caracteres en ServicioTeclado.kt de 60 a 150 caracteres, permitiendo al motor evaluar el contexto completo de la oración sin comprometer el rendimiento de la RAM del dispositivo.
+
+Ceguera de Logcat y Auditoría del Módem en Android 15:
+
+Problema: Al ejecutarse como un servicio en segundo plano (InputMethodService), Android Studio y Samsung Knox ocultaban/filtraban los logs del sistema, dificultando el diagnóstico de fallos en el envío del SMS.
+
+Solución: Se implementó un BroadcastReceiver con un PendingIntent explícito para capturar el código de respuesta exacto del módem (radio celular). Ante la imposibilidad de usar Toasts o Logcat, la respuesta de la antena (RESULT_OK, RESULT_ERROR_GENERIC_FAILURE, etc.) se inyectó directamente en la base de datos Room (LogFraude) simulando un registro de auditoría, permitiendo leer el estado físico de la red desde el Database Inspector.
+
+Compatibilidad de Seguridad API 33+ (Android 13/14/15):
+
+Problema: El registro del BroadcastReceiver generaba excepciones de seguridad en versiones modernas de Android.
+
+Solución: Se actualizó el código para utilizar Context.RECEIVER_NOT_EXPORTED e intents explícitos (setPackage), cumpliendo con los requisitos estrictos de Tiramisu en adelante.
+
+Bloqueo Silencioso por Filtros Anti-Spam (El mayor desafío):
+
+Problema: Aunque la orden pasaba correctamente al sistema operativo y no había fallas de permisos, el SMS nunca llegaba al destino. La base de datos registró un RESULT_ERROR_GENERIC_FAILURE arrojado por la red telefónica.
+
+Hallazgo Técnico: El bloqueo no era del dispositivo, sino del filtro Anti-Spam (A2P) de la operadora en Argentina. El texto original contenía la palabra "Ingeniería" (con tilde). La inclusión de un solo carácter especial forzaba a la red a cambiar la codificación del mensaje de GSM-7 a UCS-2 (Unicode). Esto redujo el límite de caracteres del SMS de 160 a solo 70. Al fragmentarse el mensaje automático en múltiples partes, los algoritmos de la operadora lo clasificaron como SPAM y lo destruyeron en la antena.
+
+Solución Definitiva: Se reescribió el mensaje eliminando todas las tildes, variables dinámicas extensas y caracteres especiales ("TFI Aviso: El teclado detecto riesgo (Ingenieria Social + CBU). Llame al usuario urgente."). Esto mantuvo la carga útil dentro de la codificación GSM-7 en un solo paquete, logrando una tasa de entrega exitosa del 100%.
+
+📝 Bitácora de Desarrollo - Fase 8 y 9: Panel de Configuración y Enrutamiento Múltiple
+Objetivo: Desarrollar la interfaz principal de la aplicación (Onboarding/Configuración) para eliminar los datos de prueba del código, permitiendo al usuario definir múltiples contactos de emergencia y preferencias de accesibilidad, y adaptar el backend para procesar estos datos dinámicos.
+
+Archivos Creados y Modificados:
+
+GestorConfiguracion.kt (Nuevo): Motor de almacenamiento local.
+
+activity_main.xml (Nuevo/Rediseñado): Interfaz visual de la aplicación.
+
+MainActivity.kt (Nuevo): Controlador de la pantalla principal.
+
+AndroidManifest.xml: Registro del entry point de la app.
+
+GestorPrivacidad.kt: Lógica de enrutamiento múltiple de SMS.
+
+Desarrollo, Obstáculos y Soluciones:
+
+Persistencia Segura de Preferencias (SharedPreferences):
+
+Implementación: Se construyó la clase GestorConfiguracion aislando el acceso a SharedPreferences (en modo MODE_PRIVATE) para guardar el "Número Principal", el "Número de Respaldo" y el "Tamaño del Teclado" elegido por el usuario. Esto descentraliza la configuración y elimina por completo los números hardcodeados en el código fuente.
+
+Rediseño UI/UX (Material Design & Play Store Readiness):
+
+Desafío: El diseño XML inicial era funcional pero carecía del estándar estético necesario para transmitir confianza como herramienta de ciberseguridad en la Play Store.
+
+Solución: Se aplicó un rediseño completo utilizando CardView para simular tarjetas elevadas con bordes redondeados y sombras (elevation). Se corrigieron conflictos de "theming" predeterminado forzando tintes (backgroundTint) y efectos de interacción táctil (rippleColor) personalizados.
+
+Feedback Visual: Se reemplazó el Toast genérico del sistema por un Snackbar anclado a la vista raíz, estilizado con colores de éxito (#2E7D32), elevando la calidad percibida de la aplicación.
+
+Refactorización del Motor de SMS (Envío en Cadena):
+
+Implementación: Se modificó GestorPrivacidad.kt para que, ante una alerta crítica del Motor DLP, consulte iterativamente los números registrados en el GestorConfiguracion.
+
+Solución Técnica: Se implementó un bucle de despacho que genera un PendingIntent único (basado en el HashCode del número de teléfono) para cada contacto. Esto garantiza que la auditoría de radio celular registrará el estado de envío y posibles fallas de la antena telefónica de manera individual para cada destinatario en la base de datos local (Room).
+
+Estructura del Proyecto y Manifest:
+
+Desafío: Al nacer puramente como un InputMethodService (Teclado en segundo plano), la aplicación carecía de una actividad lanzadora.
+
+Solución: Se instanció formalmente MainActivity.kt y se registró en el AndroidManifest.xml con los filtros <action android:name="android.intent.action.MAIN" /> y <category android:name="android.intent.category.LAUNCHER" />, instruyendo al sistema operativo a crear un ícono de acceso directo en el dispositivo.
