@@ -16,7 +16,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.TecladoSeguro"> <!-- Se quitó la barra de auto-cierre aquí -->
+        android:theme="@style/Theme.TecladoSeguro">
 
         <service
             android:name=".ServicioTeclado"
@@ -31,16 +31,24 @@
                 android:resource="@xml/method" />
         </service>
 
+        <!-- NUESTRA NUEVA PANTALLA DE INICIO (Punto de entrada) -->
         <activity
-            android:name=".MainActivity"
+            android:name=".SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"> <!-- O el tema que estés usando -->
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-    </application> <!-- Se cierra la aplicación después del servicio -->
+        <!-- LA PANTALLA DE CONFIGURACIÓN PRINCIPAL -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        </activity>
+
+    </application>
 
 </manifest>

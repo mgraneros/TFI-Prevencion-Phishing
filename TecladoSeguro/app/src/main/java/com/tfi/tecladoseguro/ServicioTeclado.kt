@@ -10,12 +10,16 @@ import android.widget.TextView
 class ServicioTeclado : InputMethodService() {
 
     private lateinit var gestorPrivacidad: GestorPrivacidad
+    private lateinit var gestorConfig: GestorConfiguracion
     private lateinit var barraAlertaDlp: TextView
     private var isCaps = false
     private var isCapsLocked = false
     private var isNumericMode = false
     private lateinit var listaBotonesLetras: List<Button>
     private var palabraActual = StringBuilder()
+
+    // Variable para detectar si el usuario cambió el tamaño en la app
+    private var tamanoActualAplicado = ""
 
     private val letrasQwerty = listOf(
         "q", "w", "e", "r", "t", "y", "u", "i", "o", "p",
@@ -32,6 +36,22 @@ class ServicioTeclado : InputMethodService() {
     override fun onCreate() {
         super.onCreate()
         gestorPrivacidad = GestorPrivacidad(this)
+        gestorConfig = GestorConfiguracion(this)
+        // Guardamos el tamaño que tiene el teclado al nacer
+        tamanoActualAplicado = gestorConfig.obtenerTamanoTeclado()
+    }
+
+    // NUEVO: Este método se ejecuta cada vez que el teclado "aparece" en la pantalla
+    override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
+        super.onStartInputView(info, restarting)
+
+        val nuevoTamano = gestorConfig.obtenerTamanoTeclado()
+        // Si el tamaño guardado es diferente al que tenemos dibujado...
+        if (nuevoTamano != tamanoActualAplicado) {
+            tamanoActualAplicado = nuevoTamano
+            // Forzamos a Android a descartar el caché y redibujar el teclado completo
+            setInputView(onCreateInputView())
+        }
     }
 
     fun evaluarTextoEscrito(textoIngresado: String) {
@@ -78,7 +98,6 @@ class ServicioTeclado : InputMethodService() {
                     actualizarTextosBotones()
                 }
 
-                // NUEVO: Evaluación DLP en tiempo real en cada pulsación
                 evaluarTextoEscrito(palabraActual.toString())
             }
         }
@@ -142,7 +161,8 @@ class ServicioTeclado : InputMethodService() {
             }
         }
 
-        vista.findViewById<ImageButton>(R.id.btnEnter).setOnClickListener {
+        val btnEnter = vista.findViewById<ImageButton>(R.id.btnEnter)
+        btnEnter.setOnClickListener {
             currentInputConnection?.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_ENTER))
             currentInputConnection?.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_ENTER))
 
@@ -178,7 +198,47 @@ class ServicioTeclado : InputMethodService() {
             actualizarTextosBotones()
         }
 
+        aplicarTamanoDinamico(vista, btnBorrar, btnEnter, btnMayus, btnSimbolos)
+
         return vista
+    }
+
+    private fun aplicarTamanoDinamico(vista: View, btnBorrar: View, btnEnter: View, btnMayus: View, btnSimbolos: View) {
+        val tamanoSeleccionado = gestorConfig.obtenerTamanoTeclado()
+
+        // Ajustamos la altura de la caja (DP)
+        val alturaDp = when (tamanoSeleccionado) {
+            "Grande" -> 60f
+            "Extra Grande" -> 75f
+            else -> 45f // Normal
+        }
+
+        // NUEVO: Ajustamos el tamaño de la letra para que acompañe el crecimiento
+        val tamanoFuenteSp = when (tamanoSeleccionado) {
+            "Grande" -> 20f
+            "Extra Grande" -> 24f
+            else -> 16f // Normal
+        }
+
+        val alturaPx = (alturaDp * resources.displayMetrics.density).toInt()
+
+        val todosLosBotones = listaBotonesLetras.toMutableList<View>()
+        todosLosBotones.addAll(listOf(
+            vista.findViewById<Button>(R.id.btnComa),
+            vista.findViewById<Button>(R.id.btnPunto),
+            vista.findViewById<Button>(R.id.btnEspacio),
+            btnBorrar, btnEnter, btnMayus, btnSimbolos
+        ))
+
+        for (boton in todosLosBotones) {
+            boton.layoutParams = boton.layoutParams.apply {
+                height = alturaPx
+            }
+            // Si es un botón con texto (letras, coma, punto), le agrandamos la fuente
+            if (boton is Button) {
+                boton.textSize = tamanoFuenteSp
+            }
+        }
     }
 
     private fun actualizarTextosBotones() {

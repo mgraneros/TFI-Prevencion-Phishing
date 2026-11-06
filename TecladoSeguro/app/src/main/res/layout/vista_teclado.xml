@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="#1E1E1E"
@@ -71,7 +72,7 @@
         android:layout_marginBottom="6dp"
         tools:ignore="ButtonStyle">
 
-        <ImageButton android:id="@+id/btnMayus" android:layout_width="0dp" android:layout_height="55dp" android:layout_weight="1.5" android:layout_marginEnd="2dp" android:padding="0dp" android:src="@drawable/ic_mayus" android:background="@drawable/fondo_tecla_azul" android:scaleType="centerInside" />
+        <ImageButton android:id="@+id/btnMayus" android:layout_width="0dp" android:layout_height="55dp" android:layout_weight="1.5" android:layout_marginEnd="2dp" android:padding="0dp" android:src="@drawable/ic_mayus" android:background="@drawable/fondo_tecla_azul" android:backgroundTint="#0A1929" app:tint="#00E676" android:scaleType="centerInside" />
 
         <android.widget.Button android:id="@+id/btnZ" android:layout_width="0dp" android:layout_height="55dp" android:layout_weight="1" android:layout_marginEnd="2dp" android:padding="0dp" android:text="Z" android:textSize="22sp" android:textColor="#FFFFFF" android:background="@drawable/fondo_tecla" />
         <android.widget.Button android:id="@+id/btnX" android:layout_width="0dp" android:layout_height="55dp" android:layout_weight="1" android:layout_marginEnd="2dp" android:padding="0dp" android:text="X" android:textSize="22sp" android:textColor="#FFFFFF" android:background="@drawable/fondo_tecla" />
@@ -81,7 +82,7 @@
         <android.widget.Button android:id="@+id/btnN" android:layout_width="0dp" android:layout_height="55dp" android:layout_weight="1" android:layout_marginEnd="2dp" android:padding="0dp" android:text="N" android:textSize="22sp" android:textColor="#FFFFFF" android:background="@drawable/fondo_tecla" />
         <android.widget.Button android:id="@+id/btnM" android:layout_width="0dp" android:layout_height="55dp" android:layout_weight="1" android:layout_marginEnd="2dp" android:padding="0dp" android:text="M" android:textSize="22sp" android:textColor="#FFFFFF" android:background="@drawable/fondo_tecla" />
 
-        <ImageButton android:id="@+id/btnBorrar" android:layout_width="0dp" android:layout_height="55dp" android:layout_weight="1.5" android:padding="0dp" android:src="@drawable/ic_borrar" android:background="@drawable/fondo_tecla_azul" android:scaleType="centerInside" />
+        <ImageButton android:id="@+id/btnBorrar" android:layout_width="0dp" android:layout_height="55dp" android:layout_weight="1.5" android:padding="0dp" android:src="@drawable/ic_borrar" android:background="@drawable/fondo_tecla_azul" android:backgroundTint="#0A1929" app:tint="#00E676" android:scaleType="centerInside" />
     </LinearLayout>
 
     <!-- Fila 4: Espacio y Enter -->
@@ -91,12 +92,12 @@
         android:orientation="horizontal"
         tools:ignore="ButtonStyle">
 
-        <android.widget.Button android:id="@+id/btnSimbolos" android:layout_width="0dp" android:layout_height="55dp" android:layout_weight="1.5" android:layout_marginEnd="2dp" android:padding="0dp" android:text="\?123" android:textStyle="bold" android:textSize="18sp" android:textColor="#FFFFFF" android:background="@drawable/fondo_tecla_azul" />
+        <android.widget.Button android:id="@+id/btnSimbolos" android:layout_width="0dp" android:layout_height="55dp" android:layout_weight="1.5" android:layout_marginEnd="2dp" android:padding="0dp" android:text="\?123" android:textStyle="bold" android:textSize="18sp" android:textColor="#00E676" android:background="@drawable/fondo_tecla_azul" android:backgroundTint="#0A1929" />
         <android.widget.Button android:id="@+id/btnComa" android:layout_width="0dp" android:layout_height="55dp" android:layout_weight="1" android:layout_marginEnd="2dp" android:padding="0dp" android:text="," android:textSize="22sp" android:textColor="#FFFFFF" android:background="@drawable/fondo_tecla" />
         <android.widget.Button android:id="@+id/btnEspacio" android:layout_width="0dp" android:layout_height="55dp" android:layout_weight="4" android:layout_marginEnd="2dp" android:padding="0dp" android:text="ESPACIO" android:textStyle="bold" android:textSize="16sp" android:textColor="#FFFFFF" android:background="@drawable/fondo_tecla" />
         <android.widget.Button android:id="@+id/btnPunto" android:layout_width="0dp" android:layout_height="55dp" android:layout_weight="1" android:layout_marginEnd="2dp" android:padding="0dp" android:text="." android:textSize="22sp" android:textColor="#FFFFFF" android:background="@drawable/fondo_tecla" />
 
-        <ImageButton android:id="@+id/btnEnter" android:layout_width="0dp" android:layout_height="55dp" android:layout_weight="1.5" android:padding="0dp" android:src="@drawable/ic_enter" android:background="@drawable/fondo_tecla_azul" android:scaleType="centerInside" />
+        <ImageButton android:id="@+id/btnEnter" android:layout_width="0dp" android:layout_height="55dp" android:layout_weight="1.5" android:padding="0dp" android:src="@drawable/ic_enter" android:background="@drawable/fondo_tecla_azul" android:backgroundTint="#0A1929" app:tint="#00E676" android:scaleType="centerInside" />
     </LinearLayout>
 
 </LinearLayout>

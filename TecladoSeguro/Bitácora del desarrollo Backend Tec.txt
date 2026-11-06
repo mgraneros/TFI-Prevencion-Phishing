@@ -167,3 +167,38 @@ Estructura del Proyecto y Manifest:
 Desafío: Al nacer puramente como un InputMethodService (Teclado en segundo plano), la aplicación carecía de una actividad lanzadora.
 
 Solución: Se instanció formalmente MainActivity.kt y se registró en el AndroidManifest.xml con los filtros <action android:name="android.intent.action.MAIN" /> y <category android:name="android.intent.category.LAUNCHER" />, instruyendo al sistema operativo a crear un ícono de acceso directo en el dispositivo.
+
+📝 Bitácora de Desarrollo - Fase 10 y 11 (Parte 1): Teclado Dinámico e Identidad Visual
+Objetivo: Implementar la lectura de preferencias en tiempo real para redimensionar el teclado dinámicamente y establecer la identidad gráfica corporativa de la aplicación (Ícono, Splash Screen y Dark Mode) como preparación para la Play Store.
+
+Archivos Creados y Modificados:
+
+ServicioTeclado.kt: Lógica de redimensionamiento e invalidación de caché.
+
+SplashActivity.kt y activity_splash.xml (Nuevos): Pantalla de carga animada.
+
+activity_main.xml: Rediseño completo a Dark Mode.
+
+vista_teclado.xml: Sincronización de paleta de colores.
+
+AndroidManifest.xml: Re-enrutamiento del punto de entrada (Launcher).
+
+res/mipmap/: Nuevos recursos gráficos adaptables (ic_launcher).
+
+Desarrollo, Obstáculos y Soluciones:
+
+Redimensionamiento Dinámico (Fase 10):
+
+Desafío: El sistema operativo Android guarda el teclado en la memoria caché para abrirlo instantáneamente, ignorando los cambios de tamaño configurados en la app principal.
+
+Solución: Se intervino el ciclo de vida del teclado utilizando el método onStartInputView. Al abrirse, el teclado compara su tamaño actual con el guardado en GestorConfiguracion. Si difieren, fuerza la destrucción de la caché y recrea la vista (onCreateInputView) aplicando las nuevas medidas en píxeles (convirtiendo desde DP) y ajustando dinámicamente el textSize.
+
+Identidad Visual y Splash Screen (Fase 11 - UI):
+
+Implementación: Se generó un isotipo premium y se integró mediante la herramienta nativa Image Asset para soportar íconos adaptables (Adaptive Icons) en múltiples resoluciones. Se solventaron problemas de márgenes invisibles (safe zone) escalando el ImageView en XML.
+
+Enrutamiento: Se diseñó SplashActivity.kt para mostrar la marca y retener al usuario por 2.5 segundos (Handler) antes de enrutarlo hacia MainActivity. Se reconfiguró el AndroidManifest.xml para establecer esta nueva pantalla como el punto de inicio (MAIN/LAUNCHER).
+
+Dark Mode y Consistencia Gráfica:
+
+Implementación: Se refactorizó la paleta de colores de toda la aplicación. Se pasó de un esquema genérico claro a un azul corporativo profundo (#0A1929) con acentos en verde cian (#00E676). Se actualizaron tanto la pantalla de configuración (activity_main.xml) como las teclas de función del teclado (vista_teclado.xml), unificando la estética general hacia un producto de ciberseguridad moderno.
