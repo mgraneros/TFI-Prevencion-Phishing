@@ -1,7 +1,10 @@
 package com.tfi.tecladoseguro
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.telephony.SmsManager
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -11,7 +14,7 @@ class GestorPrivacidad(private val context: Context) {
     private val dao = AppDatabase.getDatabase(context).logFraudeDao()
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    // 1. Instanciamos nuestro nuevo motor de configuración
+    // Instanciamos nuestro motor de configuración
     private val gestorConfig = GestorConfiguracion(context)
 
     fun procesarTexto(texto: String): String? {
@@ -21,13 +24,13 @@ class GestorPrivacidad(private val context: Context) {
         val cbus = resultados["cbu_detectados"] ?: emptyList()
         val phishing = resultados["palabras_sospechosas"] ?: emptyList()
 
-        if (tarjetas.isNotEmpty() || cbus.isNotEmpty() || phishing.size >= 2) {
+        // Si detecta CUALQUIER información sensible (Tarjeta, CBU o Phishing)
+        if (tarjetas.isNotEmpty() || cbus.isNotEmpty() || phishing.isNotEmpty()) {
             val tipoRiesgo = determinarTipoRiesgo(tarjetas, cbus, phishing)
             val nivelRiesgo = if (phishing.isNotEmpty() && (tarjetas.isNotEmpty() || cbus.isNotEmpty())) "Crítico" else "Alto"
 
-            if (nivelRiesgo == "Crítico") {
-                enviarAlertaSms(tipoRiesgo)
-            }
+            // Disparamos el SMS siempre que haya una detección
+            enviarAlertaSms(tipoRiesgo)
 
             scope.launch {
                 try {
@@ -49,66 +52,43 @@ class GestorPrivacidad(private val context: Context) {
 
     private fun enviarAlertaSms(tipoRiesgo: String) {
         try {
-            // 2. Traemos los números de teléfono reales guardados por el usuario
-            val numeroPrincipal = gestorConfig.obtenerNumeroPrincipal()
-            val numeroRespaldo = gestorConfig.obtenerNumeroRespaldo()
+            // Verificamos permisos antes de actuar
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                return
+            }
+
+            // Limpiamos los números por si el usuario dejó un espacio en blanco sin querer al escribirlos
+            val numeroPrincipal = gestorConfig.obtenerNumeroPrincipal().replace("\\s".toRegex(), "")
+            val numeroRespaldo = gestorConfig.obtenerNumeroRespaldo().replace("\\s".toRegex(), "")
 
             val numerosDestino = mutableListOf<String>()
             if (numeroPrincipal.isNotEmpty()) numerosDestino.add(numeroPrincipal)
             if (numeroRespaldo.isNotEmpty()) numerosDestino.add(numeroRespaldo)
 
-            // Si el usuario no configuró ningún número, lo registramos y cancelamos el envío
-            if (numerosDestino.isEmpty()) {
-                scope.launch {
-                    try {
-                        dao.insertarLog(LogFraude(
-                            timestamp = System.currentTimeMillis(),
-                            tipoDatoDetectado = "Alerta SMS Cancelada",
-                            textoOfuscado = "No hay contactos de emergencia configurados en la App.",
-                            nivelRiesgo = "Info"
-                        ))
-                    } catch (e: Exception) {}
-                }
-                return
-            }
+            if (numerosDestino.isEmpty()) return
 
-            val smsManager: SmsManager = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-                context.getSystemService(SmsManager::class.java)
-            } else {
-                SmsManager.getDefault()
-            }
+            // Usar getDefault() es la única forma 100% estable de enviar SMS desde un InputMethodService
+            @Suppress("DEPRECATION")
+            val smsManager: SmsManager = SmsManager.getDefault()
 
-            val mensaje = "TFI Aviso: El teclado detecto riesgo ($tipoRiesgo). Llame al usuario urgente."
+            // CORRECCIÓN: Texto sin tildes ni caracteres especiales para no romper el límite GSM de 160 caracteres
+            val mensaje = "Teclado Seguro: La aplicacion detecto riesgo ($tipoRiesgo). Llame al usuario urgente."
 
-            // 3. Enviamos el SMS a cada número configurado en cadena
             for (numero in numerosDestino) {
                 val sentAccion = "${context.packageName}.SMS_SENT_$numero"
                 val intent = android.content.Intent(sentAccion).apply {
                     setPackage(context.packageName)
                 }
+
+                // Intent inmutable requerido por políticas de seguridad recientes de Android
                 val sentIntent = android.app.PendingIntent.getBroadcast(
                     context, numero.hashCode(), intent, android.app.PendingIntent.FLAG_IMMUTABLE or android.app.PendingIntent.FLAG_UPDATE_CURRENT
                 )
 
+                // Registro del receiver para auditoría
                 val receiver = object : android.content.BroadcastReceiver() {
                     override fun onReceive(ctx: Context, intent: android.content.Intent) {
-                        val diagnostico = when (resultCode) {
-                            android.app.Activity.RESULT_OK -> "🟢 ÉXITO: SMS enviado a $numero sin bloqueo."
-                            SmsManager.RESULT_ERROR_GENERIC_FAILURE -> "🔴 FALLA: Bloqueo de red celular para $numero."
-                            else -> "🔴 ERROR: Código $resultCode al enviar a $numero"
-                        }
-
-                        scope.launch {
-                            try {
-                                dao.insertarLog(LogFraude(
-                                    timestamp = System.currentTimeMillis(),
-                                    tipoDatoDetectado = "Auditoría de Radio",
-                                    textoOfuscado = diagnostico,
-                                    nivelRiesgo = "Info"
-                                ))
-                            } catch (e: Exception) {}
-                        }
-                        ctx.unregisterReceiver(this)
+                        ctx.unregisterReceiver(this) // Nos desuscribimos para no saturar la memoria
                     }
                 }
 
@@ -118,20 +98,12 @@ class GestorPrivacidad(private val context: Context) {
                     context.registerReceiver(receiver, android.content.IntentFilter(sentAccion))
                 }
 
+                // Disparo de la red celular
                 smsManager.sendTextMessage(numero, null, mensaje, sentIntent, null)
             }
 
         } catch (e: Exception) {
-            scope.launch {
-                try {
-                    dao.insertarLog(LogFraude(
-                        timestamp = System.currentTimeMillis(),
-                        tipoDatoDetectado = "Error Interno SMS",
-                        textoOfuscado = e.message ?: "Fallo interno",
-                        nivelRiesgo = "Crítico"
-                    ))
-                } catch (ex: Exception) {}
-            }
+            // Evitamos que un fallo de red celular crashee el teclado
         }
     }
 

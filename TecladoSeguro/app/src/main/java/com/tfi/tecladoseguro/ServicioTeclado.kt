@@ -1,6 +1,7 @@
 package com.tfi.tecladoseguro
 
 import android.inputmethodservice.InputMethodService
+import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
@@ -41,7 +42,7 @@ class ServicioTeclado : InputMethodService() {
         tamanoActualAplicado = gestorConfig.obtenerTamanoTeclado()
     }
 
-    // NUEVO: Este método se ejecuta cada vez que el teclado "aparece" en la pantalla
+    // Este método se ejecuta cada vez que el teclado "aparece" en la pantalla
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
 
@@ -61,6 +62,9 @@ class ServicioTeclado : InputMethodService() {
             if (riesgoDetectado != null) {
                 barraAlertaDlp.text = "⚠️ BLOQUEADO: $riesgoDetectado SENSIBLE"
                 barraAlertaDlp.visibility = View.VISIBLE
+
+                // Vibración fuerte de alerta si detecta peligro
+                barraAlertaDlp.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
 
                 android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
                     barraAlertaDlp.visibility = View.GONE
@@ -84,6 +88,9 @@ class ServicioTeclado : InputMethodService() {
 
         for (boton in listaBotonesLetras) {
             boton.setOnClickListener {
+                // NUEVO: Vibración sutil al tocar la tecla
+                boton.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+
                 val textoAEscribir = boton.text.toString()
                 currentInputConnection?.commitText(textoAEscribir, 1)
 
@@ -105,18 +112,21 @@ class ServicioTeclado : InputMethodService() {
         actualizarTextosBotones()
 
         vista.findViewById<Button>(R.id.btnComa).setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
             currentInputConnection?.commitText(",", 1)
             palabraActual.append(",")
             evaluarTextoEscrito(palabraActual.toString())
         }
 
         vista.findViewById<Button>(R.id.btnPunto).setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
             currentInputConnection?.commitText(".", 1)
             palabraActual.append(".")
             evaluarTextoEscrito(palabraActual.toString())
         }
 
         vista.findViewById<Button>(R.id.btnEspacio).setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
             currentInputConnection?.commitText(" ", 1)
             palabraActual.append(" ")
 
@@ -145,9 +155,10 @@ class ServicioTeclado : InputMethodService() {
             }
         }
 
-        btnBorrar.setOnTouchListener { _, event ->
+        btnBorrar.setOnTouchListener { v, event ->
             when (event.action) {
                 android.view.MotionEvent.ACTION_DOWN -> {
+                    v.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
                     borrando = true
                     handlerBorrado.post(accionBorrar)
                     true
@@ -163,6 +174,7 @@ class ServicioTeclado : InputMethodService() {
 
         val btnEnter = vista.findViewById<ImageButton>(R.id.btnEnter)
         btnEnter.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
             currentInputConnection?.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_ENTER))
             currentInputConnection?.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_ENTER))
 
@@ -171,6 +183,7 @@ class ServicioTeclado : InputMethodService() {
 
         val btnMayus = vista.findViewById<ImageButton>(R.id.btnMayus)
         btnMayus.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
             if (isCapsLocked) {
                 isCapsLocked = false
                 isCaps = false
@@ -180,6 +193,7 @@ class ServicioTeclado : InputMethodService() {
             actualizarTextosBotones()
         }
         btnMayus.setOnLongClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
             isCapsLocked = true
             isCaps = true
             actualizarTextosBotones()
@@ -188,6 +202,7 @@ class ServicioTeclado : InputMethodService() {
 
         val btnSimbolos = vista.findViewById<Button>(R.id.btnSimbolos)
         btnSimbolos.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
             isNumericMode = !isNumericMode
             btnSimbolos.text = if (isNumericMode) "ABC" else "?123"
 
@@ -213,7 +228,7 @@ class ServicioTeclado : InputMethodService() {
             else -> 45f // Normal
         }
 
-        // NUEVO: Ajustamos el tamaño de la letra para que acompañe el crecimiento
+        // Ajustamos el tamaño de la letra para que acompañe el crecimiento
         val tamanoFuenteSp = when (tamanoSeleccionado) {
             "Grande" -> 20f
             "Extra Grande" -> 24f
