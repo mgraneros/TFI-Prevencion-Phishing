@@ -202,3 +202,26 @@ Enrutamiento: Se diseñó SplashActivity.kt para mostrar la marca y retener al u
 Dark Mode y Consistencia Gráfica:
 
 Implementación: Se refactorizó la paleta de colores de toda la aplicación. Se pasó de un esquema genérico claro a un azul corporativo profundo (#0A1929) con acentos en verde cian (#00E676). Se actualizaron tanto la pantalla de configuración (activity_main.xml) como las teclas de función del teclado (vista_teclado.xml), unificando la estética general hacia un producto de ciberseguridad moderno.
+
+
+Fase 11 (parte 2- finalizado)
+
+Bitácora de Trabajo - Sesión de Desarrollo
+
+Cumplimiento Normativo (Google Play): Integración del cuadro de "Divulgación Destacada" (Prominent Disclosure) obligatorio para justificar el permiso de SMS. Se configuró con bloqueo de cierre accidental, enrutamiento directo al sistema operativo y persistencia local de la decisión del usuario.
+
+Mejoras de Experiencia de Usuario (UX):
+
+Implementación de retroalimentación háptica nativa (KEYBOARD_TAP) en el servicio del teclado para brindar una sensación de escritura física y premium.
+
+Desarrollo de una Tarjeta de Estado de teclado inteligente en MainActivity que reacciona en tiempo real a las configuraciones de Android interceptando los cambios de foco (onWindowFocusChanged).
+
+Resolución de colisiones visuales en la interfaz ajustando el margen inferior del ScrollView para despegar el botón de guardado de la barra de navegación.
+
+Estabilización del Motor DLP y Red Celular:
+
+Corrección arquitectónica del motor de alertas implementando SmsManager.getDefault() y validación estricta de contexto, garantizando compatibilidad con dispositivos Samsung y bandejas Dual SIM.
+
+Resolución del fallo de codificación de red celular: eliminación de caracteres especiales (tildes) en la alerta para evitar la conversión automática a Unicode, manteniendo el mensaje dentro de la cuota segura de 160 caracteres GSM.
+
+Distribución: Compilación exitosa y exportación de la primera versión APK para la fase de pruebas de campo con el equipo de desarrollo.
