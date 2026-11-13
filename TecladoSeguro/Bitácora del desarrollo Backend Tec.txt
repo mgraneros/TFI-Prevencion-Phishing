@@ -225,3 +225,21 @@ Corrección arquitectónica del motor de alertas implementando SmsManager.getDef
 Resolución del fallo de codificación de red celular: eliminación de caracteres especiales (tildes) en la alerta para evitar la conversión automática a Unicode, manteniendo el mensaje dentro de la cuota segura de 160 caracteres GSM.
 
 Distribución: Compilación exitosa y exportación de la primera versión APK para la fase de pruebas de campo con el equipo de desarrollo.
+
+Fase 12:
+
+Bitácora de Trabajo - Sesión de Preparación para Google Play (URL:  https://docs.google.com/document/d/e/2PACX-1vTEFWAsrZOJ-kgOa8gVtObhvYwwn0m_sJl3H3bLwHDeAM0mJMbILyqoyCCQP3xsDWl_h6zhDS-xdQ5B/pub)
+
+Compliance y Legales (Fase 1 completada):
+
+Redacción de una Política de Privacidad robusta adaptada al contexto del Trabajo Final Integrador (UNSO - Grupo 13).
+
+Justificación legal y técnica del procesamiento local (offline) y del uso restrictivo del permiso SEND_SMS para la prevención de fraudes (DLP).
+
+Publicación del documento mediante Google Docs para la obtención de la URL oficial requerida por la tienda.
+
+Firma Digital y Empaquetado (Fase 2 completada):
+
+Creación de la llave criptográfica de desarrollador (tecladoseguro.jks) con los metadatos institucionales del equipo.
+
+Compilación exitosa y exportación de la aplicación en formato Android App Bundle (.aab - variante release), lista para ser procesada por los servidores de Google.

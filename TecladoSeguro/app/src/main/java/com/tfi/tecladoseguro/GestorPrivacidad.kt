@@ -23,11 +23,13 @@ class GestorPrivacidad(private val context: Context) {
         val tarjetas = resultados["tarjetas_validas"] ?: emptyList()
         val cbus = resultados["cbu_detectados"] ?: emptyList()
         val phishing = resultados["palabras_sospechosas"] ?: emptyList()
+        // NUEVO: Capturamos los CVV/PIN detectados por el motor
+        val cvvs = resultados["cvv_potenciales"] ?: emptyList()
 
-        // Si detecta CUALQUIER información sensible (Tarjeta, CBU o Phishing)
-        if (tarjetas.isNotEmpty() || cbus.isNotEmpty() || phishing.isNotEmpty()) {
-            val tipoRiesgo = determinarTipoRiesgo(tarjetas, cbus, phishing)
-            val nivelRiesgo = if (phishing.isNotEmpty() && (tarjetas.isNotEmpty() || cbus.isNotEmpty())) "Crítico" else "Alto"
+        // NUEVO: Agregamos cvvs.isNotEmpty() a la condición de disparo principal
+        if (tarjetas.isNotEmpty() || cbus.isNotEmpty() || phishing.isNotEmpty() || cvvs.isNotEmpty()) {
+            val tipoRiesgo = determinarTipoRiesgo(tarjetas, cbus, phishing, cvvs)
+            val nivelRiesgo = if (phishing.isNotEmpty() && (tarjetas.isNotEmpty() || cbus.isNotEmpty() || cvvs.isNotEmpty())) "Crítico" else "Alto"
 
             // Disparamos el SMS siempre que haya una detección
             enviarAlertaSms(tipoRiesgo)
@@ -107,17 +109,27 @@ class GestorPrivacidad(private val context: Context) {
         }
     }
 
-    private fun determinarTipoRiesgo(tarjetas: List<String>, cbus: List<String>, phishing: List<String>): String {
+    // NUEVO: Sumamos la lista de CVVs a los parámetros para armar el texto de la alerta SMS
+    private fun determinarTipoRiesgo(tarjetas: List<String>, cbus: List<String>, phishing: List<String>, cvvs: List<String>): String {
         val tipos = mutableListOf<String>()
         if (tarjetas.isNotEmpty()) tipos.add("Tarjeta")
         if (cbus.isNotEmpty()) tipos.add("CBU")
+        if (cvvs.isNotEmpty()) tipos.add("CVV/PIN")
         if (phishing.isNotEmpty()) tipos.add("Ingenieria Social")
         return tipos.joinToString(" + ")
     }
 
     private fun ofuscarDatosSensibles(texto: String): String {
-        return texto.replace(Regex("\\b\\d{13,19}\\b"), "[TARJETA OFUSCADA]")
-            .replace(Regex("\\b\\d{22}\\b"), "[CBU OFUSCADO]")
-            .replace(Regex("\\b[1-9]\\d{6,7}\\b"), "[DNI OFUSCADO]")
+        // NUEVO: Expresiones regulares que soportan espacios y guiones para que la BD local cumpla con la privacidad
+        var textoLimpio = texto.replace(Regex("(?<!\\d)(?:\\d[\\s-]*){13,19}(?!\\d)"), "[TARJETA OFUSCADA]")
+            .replace(Regex("(?<!\\d)(?:\\d[\\s-]*){22}(?!\\d)"), "[CBU OFUSCADO]")
+            .replace(Regex("(?<!\\d)(?:\\d[\\s-]*){7,8}(?!\\d)"), "[DNI OFUSCADO]")
+
+        // Reemplazo inteligente de CVV: Mantiene las palabras de contexto (ej: "codigo es ") pero tapa los números ("1234")
+        textoLimpio = textoLimpio.replace(Regex("(?i)(código|codigo|cvv|cve|pin|clave|tarjeta)(\\s*(?:de\\s*tarjeta\\s*)?[:\\-]?\\s*(?:es\\s*)?)(\\d{3,5})\\b")) { matchResult ->
+            matchResult.groupValues[1] + matchResult.groupValues[2] + "[CVV OFUSCADO]"
+        }
+
+        return textoLimpio
     }
 }
