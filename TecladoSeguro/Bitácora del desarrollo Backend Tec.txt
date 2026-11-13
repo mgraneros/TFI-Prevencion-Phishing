@@ -243,3 +243,12 @@ Firma Digital y Empaquetado (Fase 2 completada):
 Creación de la llave criptográfica de desarrollador (tecladoseguro.jks) con los metadatos institucionales del equipo.
 
 Compilación exitosa y exportación de la aplicación en formato Android App Bundle (.aab - variante release), lista para ser procesada por los servidores de Google.
+
+
+Fase 13:
+
+Bitácora de Trabajo - Actualización del Motor DLP
+
+Problema resuelto: El motor anterior fallaba al procesar números separados por espacios y omitía códigos de seguridad cortos (CVV) sin contexto. Además, Play Protect bloqueaba la instalación local.
+
+Solución aplicada: Se implementó una lógica de Regex avanzada para capturar conectores de texto ("código de tarjeta") y extraer limpiamente los dígitos. Se modificó la condición de disparo en el Gestor de Privacidad para incluir los CVV. Se definió el bypass manual de Play Protect para las pruebas internas.
