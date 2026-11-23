@@ -38,7 +38,6 @@ El proyecto cubre ambos extremos:
 - Retroalimentación háptica en cada tecla.
 - Borrado continuo manteniendo presionada la tecla.
 - Modo mayúsculas con bloqueo (pulsación larga) y modo símbolos.
-- **Español (Argentina):** incluye la **Ñ**, vocales con tilde por **pulsación larga** (`á é í ó ú`) y los signos `¿` y `¡`.
 - Interfaz oscura de alto contraste (azul `#0A1929` con acentos verde cian).
 
 ### Aplicación de configuración
