@@ -1,6 +1,9 @@
 package com.tfi.tecladoseguro
 
+import android.content.Context
+import android.graphics.Color
 import android.inputmethodservice.InputMethodService
+import android.media.AudioManager
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -22,6 +25,37 @@ class ServicioTeclado : InputMethodService() {
     // Variable para detectar si el usuario cambió el tamaño en la app
     private var tamanoActualAplicado = ""
 
+    // Bandera para mantener fija la alerta si hay una llamada sospechosa en curso
+    private var alertaVishingActiva = false
+
+    // Listas de paquetes sensibles para detección de Vishing (llamada en curso)
+    private val appsAccesoRemoto = setOf(
+        "com.anydesk.anydeskandroid",
+        "com.teamviewer.teamviewer.market.mobile",
+        "com.teamviewer.quicksupport.market"
+    )
+
+    private val appsSensibles = setOf(
+        // Billeteras y Bancos (Argentina)
+        "com.mercadopago.wallet",
+        "com.playdigital.modo",
+        "ar.com.bapro.cuentadni",
+        "ar.com.bancar.uala",
+        "com.brubank",
+        "ar.com.bancogalicia.android",
+        "ar.com.santander.rio.mbanking",
+        "com.bbva.nxt_argentina",
+        "com.macro.mobile",
+        "ar.com.bna.plus",
+        "com.naranjax.app",
+        "com.personal.pay",
+        // Mensajería y Correo
+        "com.whatsapp",
+        "com.whatsapp.w4b",
+        "com.google.android.gm",
+        "com.microsoft.office.outlook"
+    )
+
     private val letrasQwerty = listOf(
         "q", "w", "e", "r", "t", "y", "u", "i", "o", "p",
         "a", "s", "d", "f", "g", "h", "j", "k", "l",
@@ -42,6 +76,51 @@ class ServicioTeclado : InputMethodService() {
         tamanoActualAplicado = gestorConfig.obtenerTamanoTeclado()
     }
 
+    // Detecta llamadas telefónicas tradicionales y llamadas VoIP (WhatsApp, Telegram, Meet)
+    private fun hayLlamadaEnCurso(): Boolean {
+        val audioManager = getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return false
+        return audioManager.mode == AudioManager.MODE_IN_CALL ||
+                audioManager.mode == AudioManager.MODE_IN_COMMUNICATION
+    }
+
+    // Evalúa si el usuario está en llamada dentro de una app sensible
+    private fun verificarRiesgoVishing(packageName: String?) {
+        if (!::barraAlertaDlp.isInitialized) return
+
+        val pkg = packageName?.lowercase() ?: ""
+        if (hayLlamadaEnCurso() && pkg.isNotEmpty()) {
+            val esAccesoRemoto = appsAccesoRemoto.contains(pkg) || pkg.contains("anydesk") || pkg.contains("teamviewer")
+            val esAppSensible = appsSensibles.contains(pkg) ||
+                    pkg.contains("banco") ||
+                    pkg.contains("bank") ||
+                    pkg.contains("wallet")
+
+            when {
+                esAccesoRemoto -> {
+                    alertaVishingActiva = true
+                    barraAlertaDlp.setBackgroundColor(Color.parseColor("#B71C1C")) // Rojo oscuro crítico
+                    barraAlertaDlp.text = "🚨 PELIGRO VISHING: No des acceso remoto en llamada"
+                    barraAlertaDlp.visibility = View.VISIBLE
+                    barraAlertaDlp.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                }
+                esAppSensible -> {
+                    alertaVishingActiva = true
+                    barraAlertaDlp.setBackgroundColor(Color.parseColor("#E65100")) // Naranja preventivo
+                    barraAlertaDlp.text = "⚠️ LLAMADA EN CURSO: No compartas claves ni códigos"
+                    barraAlertaDlp.visibility = View.VISIBLE
+                    barraAlertaDlp.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                }
+                else -> {
+                    alertaVishingActiva = false
+                    barraAlertaDlp.visibility = View.GONE
+                }
+            }
+        } else {
+            alertaVishingActiva = false
+            barraAlertaDlp.visibility = View.GONE
+        }
+    }
+
     // Este método se ejecuta cada vez que el teclado "aparece" en la pantalla
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
@@ -53,6 +132,9 @@ class ServicioTeclado : InputMethodService() {
             // Forzamos a Android a descartar el caché y redibujar el teclado completo
             setInputView(onCreateInputView())
         }
+
+        // Evaluamos riesgo de Vishing al abrir el teclado
+        verificarRiesgoVishing(info?.packageName)
     }
 
     fun evaluarTextoEscrito(textoIngresado: String) {
@@ -60,6 +142,7 @@ class ServicioTeclado : InputMethodService() {
             val riesgoDetectado = gestorPrivacidad.procesarTexto(textoIngresado)
 
             if (riesgoDetectado != null) {
+                barraAlertaDlp.setBackgroundColor(Color.parseColor("#D32F2F")) // Rojo alerta DLP
                 barraAlertaDlp.text = "⚠️ BLOQUEADO: $riesgoDetectado SENSIBLE"
                 barraAlertaDlp.visibility = View.VISIBLE
 
@@ -67,7 +150,12 @@ class ServicioTeclado : InputMethodService() {
                 barraAlertaDlp.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
 
                 android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                    barraAlertaDlp.visibility = View.GONE
+                    // Si sigue en llamada sospechosa, restauramos el aviso de Vishing en lugar de ocultar la barra
+                    if (alertaVishingActiva) {
+                        verificarRiesgoVishing(currentInputEditorInfo?.packageName)
+                    } else {
+                        barraAlertaDlp.visibility = View.GONE
+                    }
                 }, 3000)
             }
         }
@@ -88,7 +176,7 @@ class ServicioTeclado : InputMethodService() {
 
         for (boton in listaBotonesLetras) {
             boton.setOnClickListener {
-                // NUEVO: Vibración sutil al tocar la tecla
+                // Vibración sutil al tocar la tecla
                 boton.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
 
                 val textoAEscribir = boton.text.toString()

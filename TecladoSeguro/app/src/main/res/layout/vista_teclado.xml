@@ -9,17 +9,19 @@
     android:paddingBottom="8dp"
     android:paddingTop="8dp">
 
-    <!-- Barra de Alerta DLP (Oculta por defecto) -->
+    <!-- Barra de Alerta DLP / Anti-Vishing (Oculta por defecto) -->
     <TextView
         android:id="@+id/barraAlertaDlp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"
         android:background="#D32F2F"
         android:textColor="#FFFFFF"
-        android:textSize="18sp"
+        android:textSize="15sp"
         android:textStyle="bold"
         android:text="⚠️ Bloqueado: Información Sensible"
-        android:padding="12dp"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="10dp"
         android:gravity="center"
         android:visibility="gone" />
 
