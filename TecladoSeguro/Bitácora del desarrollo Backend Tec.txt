@@ -252,3 +252,28 @@ Bitácora de Trabajo - Actualización del Motor DLP
 Problema resuelto: El motor anterior fallaba al procesar números separados por espacios y omitía códigos de seguridad cortos (CVV) sin contexto. Además, Play Protect bloqueaba la instalación local.
 
 Solución aplicada: Se implementó una lógica de Regex avanzada para capturar conectores de texto ("código de tarjeta") y extraer limpiamente los dígitos. Se modificó la condición de disparo en el Gestor de Privacidad para incluir los CVV. Se definió el bypass manual de Play Protect para las pruebas internas.
+
+
+Fase 14: 
+
+Bitácora de Trabajo — 24/11/2026
+•	Proyecto: TFI "Teclado Seguro" (com.tfi.tecladoseguro) — Grupo 13 UNSO. 
+•	Versión publicada: 2 (1.1) (versionCode = 2, versionName = "1.1"). 
+•	Estado actual: Activa y Disponible para verificadores internos en Google Play Console (lanzada el 24/11 a las 21:26 hs). 
+Hitos completados hoy
+1.	Desarrollo, ajustes visuales y empaquetado
+o	Integración y pruebas en dispositivo del Modo Anti-Vishing.
+o	Ajuste tipográfico (15sp) y diferenciación visual de alertas por nivel de riesgo en vista_teclado.xml.
+o	Actualización de versionado en build.gradle.kts, sincronización de Gradle y generación del paquete firmado app-release.aab (2,01 MB, API mínima 24, SDK de destino 37). 
+o	Sincronización de todos los cambios en el repositorio remoto de GitHub.
+2.	Alta y verificación de Google Play Console
+o	Creación de cuenta personal de desarrollador bajo el nombre público Grupo 13 UNSO (ID: 8437971199226906244). 
+o	Verificación completa de las 4 instancias obligatorias: identidad (DNI aprobado), declaración de condición de no comerciante, acceso a dispositivo móvil Android y validación del número de teléfono. 
+3.	Creación de app y lanzamiento en Prueba interna
+o	Alta del contenedor de la app Teclado Seguro (es-419, App gratuita) y aceptación de declaraciones de políticas y Play App Signing. 
+o	Creación de la lista de verificadores Grupo 13 UNSO con los primeros 3 correos cargados (blaised39@gmail.com, martinpazdj@gmail.com, romina1977ponce@gmail.com). 
+o	Subida del app-release.aab, carga de notas de versión y publicación exitosa en Prueba interna (visible temporalmente en Play Store como com.tfi.tecladoseguro (unreviewed)). 
+
+
+
+
