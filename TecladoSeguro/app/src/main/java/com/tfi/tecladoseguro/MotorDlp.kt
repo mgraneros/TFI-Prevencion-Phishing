@@ -5,7 +5,7 @@ object MotorDlp {
     // 1. Buscador maestro de bloques numéricos (Soporta espacios y guiones)
     private val REGEX_BLOQUE_NUMEROS = Regex("(?<!\\d)(?:\\d[\\s-]*){3,}(?!\\d)")
 
-    // NUEVA REGLA: Contempla conectores como "de tarjeta" y CAPTURA SOLO LOS NÚMEROS (Grupo 1)
+    // Contempla conectores como "de tarjeta" y CAPTURA SOLO LOS NÚMEROS (Grupo 1)
     private val REGEX_CVV_PIN_CONTEXTO = Regex("(?i)(?:código|codigo|cvv|cve|pin|clave|tarjeta)\\s*(?:de\\s*tarjeta\\s*)?[:\\-]?\\s*(?:es\\s*)?(\\d{3,5})\\b")
 
     private val REGEX_VENCIMIENTO = Regex("\\b(0[1-9]|1[0-2])[-/]([0-9]{2}|[0-9]{4})\\b")
@@ -62,12 +62,6 @@ object MotorDlp {
                     }
                 }
                 7, 8 -> dnisDetectados.add(numerosPuros)
-                3, 4 -> {
-                    // Solo lo suma si no fue capturado previamente por la regla de contexto
-                    if (!cvvsPotenciales.contains(numerosPuros)) {
-                        cvvsPotenciales.add(numerosPuros)
-                    }
-                }
             }
         }
 

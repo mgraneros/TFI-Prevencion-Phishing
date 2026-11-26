@@ -16,11 +16,15 @@ class ServicioTeclado : InputMethodService() {
     private lateinit var gestorPrivacidad: GestorPrivacidad
     private lateinit var gestorConfig: GestorConfiguracion
     private lateinit var barraAlertaDlp: TextView
+    private lateinit var indicadorCapsLock: View
     private var isCaps = false
     private var isCapsLocked = false
     private var isNumericMode = false
     private lateinit var listaBotonesLetras: List<Button>
     private var palabraActual = StringBuilder()
+
+    // Evita volver a disparar la alerta sobre el mismo texto pegado si el usuario solo mueve el cursor
+    private var ultimoTextoPegadoEvaluado = ""
 
     // Variable para detectar si el usuario cambió el tamaño en la app
     private var tamanoActualAplicado = ""
@@ -58,13 +62,13 @@ class ServicioTeclado : InputMethodService() {
 
     private val letrasQwerty = listOf(
         "q", "w", "e", "r", "t", "y", "u", "i", "o", "p",
-        "a", "s", "d", "f", "g", "h", "j", "k", "l",
+        "a", "s", "d", "f", "g", "h", "j", "k", "l", "ñ",
         "z", "x", "c", "v", "b", "n", "m"
     )
 
     private val caracteresNumericos = listOf(
         "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
-        "@", "#", "$", "%", "&", "-", "+", "(", ")",
+        "@", "#", "$", "%", "&", "-", "+", "(", ")", "/",
         "*", "\"", "'", ":", ";", "!", "?"
     )
 
@@ -124,6 +128,8 @@ class ServicioTeclado : InputMethodService() {
     // Este método se ejecuta cada vez que el teclado "aparece" en la pantalla
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
+        palabraActual.clear()
+        ultimoTextoPegadoEvaluado = ""
 
         val nuevoTamano = gestorConfig.obtenerTamanoTeclado()
         // Si el tamaño guardado es diferente al que tenemos dibujado...
@@ -137,6 +143,27 @@ class ServicioTeclado : InputMethodService() {
         verificarRiesgoVishing(info?.packageName)
     }
 
+    // Detecta cuando el usuario pega texto (ej. CBU o tarjeta) en WhatsApp u otra app
+    override fun onUpdateSelection(
+        oldSelStart: Int,
+        oldSelEnd: Int,
+        newSelStart: Int,
+        newSelEnd: Int,
+        candidatesStart: Int,
+        candidatesEnd: Int
+    ) {
+        super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
+
+        val saltoCaracteres = newSelStart - oldSelStart
+        if (saltoCaracteres > 1 && newSelStart == newSelEnd && oldSelStart >= 0) {
+            val textoAntesCursor = currentInputConnection?.getTextBeforeCursor(100, 0)?.toString() ?: ""
+            if (textoAntesCursor.isNotBlank() && textoAntesCursor != ultimoTextoPegadoEvaluado) {
+                ultimoTextoPegadoEvaluado = textoAntesCursor
+                evaluarTextoEscrito(textoAntesCursor)
+            }
+        }
+    }
+
     fun evaluarTextoEscrito(textoIngresado: String) {
         if (textoIngresado.isNotBlank()) {
             val riesgoDetectado = gestorPrivacidad.procesarTexto(textoIngresado)
@@ -148,6 +175,9 @@ class ServicioTeclado : InputMethodService() {
 
                 // Vibración fuerte de alerta si detecta peligro
                 barraAlertaDlp.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+
+                // Limpiamos el buffer para que la misma alerta no se dispare en cada tecla siguiente
+                palabraActual.clear()
 
                 android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
                     // Si sigue en llamada sospechosa, restauramos el aviso de Vishing en lugar de ocultar la barra
@@ -165,10 +195,11 @@ class ServicioTeclado : InputMethodService() {
         val vista = layoutInflater.inflate(R.layout.vista_teclado, null)
 
         barraAlertaDlp = vista.findViewById(R.id.barraAlertaDlp)
+        indicadorCapsLock = vista.findViewById(R.id.indicadorCapsLock)
 
         val botonesLetrasIds = listOf(
             R.id.btnQ, R.id.btnW, R.id.btnE, R.id.btnR, R.id.btnT, R.id.btnY, R.id.btnU, R.id.btnI, R.id.btnO, R.id.btnP,
-            R.id.btnA, R.id.btnS, R.id.btnD, R.id.btnF, R.id.btnG, R.id.btnH, R.id.btnJ, R.id.btnK, R.id.btnL,
+            R.id.btnA, R.id.btnS, R.id.btnD, R.id.btnF, R.id.btnG, R.id.btnH, R.id.btnJ, R.id.btnK, R.id.btnL, R.id.btnEnie,
             R.id.btnZ, R.id.btnX, R.id.btnC, R.id.btnV, R.id.btnB, R.id.btnN, R.id.btnM
         )
 
@@ -267,6 +298,7 @@ class ServicioTeclado : InputMethodService() {
             currentInputConnection?.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_ENTER))
 
             evaluarTextoEscrito(palabraActual.toString())
+            palabraActual.clear()
         }
 
         val btnMayus = vista.findViewById<ImageButton>(R.id.btnMayus)
@@ -352,6 +384,10 @@ class ServicioTeclado : InputMethodService() {
                 val letra = letrasQwerty[index]
                 boton.text = if (isCaps) letra.uppercase() else letra.lowercase()
             }
+        }
+
+        if (::indicadorCapsLock.isInitialized) {
+            indicadorCapsLock.visibility = if (isCapsLocked && !isNumericMode) View.VISIBLE else View.GONE
         }
     }
 }
