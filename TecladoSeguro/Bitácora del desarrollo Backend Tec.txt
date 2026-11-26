@@ -310,6 +310,33 @@ Categoría y contacto: Configurada como Aplicación > Herramientas con correo de
 
 Ficha de Play Store (pendiente — en borrador): Se cargaron el nombre (Teclado Seguro), la descripción breve y la descripción completa, quedando guardada en borrador a la espera de los gráficos.
 
+Fase 16:
+
+Proyecto: Teclado Seguro (TFI — Grupo 13, UNSO)
+
+1. Correcciones de motor DLP y bloqueo activo
+Eliminación de falsos positivos (CVV/PIN): Se quitó la detección sin contexto de bloques de 3-4 dígitos en MotorDlp.kt y se incorporó la limpieza del buffer (palabraActual.clear()) en ServicioTeclado.kt al abrir el teclado, al disparar una alerta y al presionar Enter.
+
+Detección de texto pegado: Se implementó onUpdateSelection en ServicioTeclado.kt para interceptar datos sensibles pegados en WhatsApp u otras apps de mensajería.
+
+Bloqueo activo (v1.4): Se agregó el borrado automático mediante deleteSurroundingText al detectar CBU, Tarjeta o CVV/PIN (escritos o pegados), eliminando el dato del campo de mensaje al instante para impedir su envío y reseteando el control de pegado para bloquear reintentos.
+
+2. Mejoras de diseño y usabilidad (vista_teclado.xml y ServicioTeclado.kt)
+Altura del teclado: Se aumentó paddingBottom a 48dp para evitar superposición con la barra de navegación del sistema.
+
+Tecla Ñ: Se incorporó btnEnie en la segunda fila del teclado QWERTY y su carácter equivalente (/) en el modo numérico.
+
+Espaciado: Se incrementó la separación horizontal entre teclas a 4dp, la vertical entre filas a 8dp y se alineó el margen lateral (4dp) en las 4 filas.
+
+Indicador de bloqueo de mayúsculas: Se agregó la rayita verde inferior (indicadorCapsLock) debajo del botón Shift, visible únicamente cuando Caps Lock está activo.
+
+Equilibrio visual: Se corrigió el tinte del botón Enter (android:tint="#00E676") para igualarlo al color de ?123.
+
+3. Validación y lanzamientos en Google Play Console
+Versión 4 (1.3): Validada localmente, compilada (app-release.aab), publicada en Prueba interna y sincronizada en GitHub.
+
+Versión 5 (1.4): Validado el bloqueo activo en dispositivo físico, actualizado app/build.gradle.kts (versionCode = 5, versionName = "1.4"), publicado el nuevo .aab en Prueba interna y sincronizado en GitHub.
+
 
 
 

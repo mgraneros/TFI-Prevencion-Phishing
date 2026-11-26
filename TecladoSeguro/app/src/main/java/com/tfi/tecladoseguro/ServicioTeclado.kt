@@ -169,6 +169,16 @@ class ServicioTeclado : InputMethodService() {
             val riesgoDetectado = gestorPrivacidad.procesarTexto(textoIngresado)
 
             if (riesgoDetectado != null) {
+                // Bloqueo activo: borramos del campo de texto si es un dato financiero sensible
+                val esDatoSensible = riesgoDetectado.contains("CBU") ||
+                        riesgoDetectado.contains("Tarjeta") ||
+                        riesgoDetectado.contains("CVV/PIN")
+
+                if (esDatoSensible) {
+                    currentInputConnection?.deleteSurroundingText(textoIngresado.length, 0)
+                    ultimoTextoPegadoEvaluado = ""
+                }
+
                 barraAlertaDlp.setBackgroundColor(Color.parseColor("#D32F2F")) // Rojo alerta DLP
                 barraAlertaDlp.text = "⚠️ BLOQUEADO: $riesgoDetectado SENSIBLE"
                 barraAlertaDlp.visibility = View.VISIBLE
