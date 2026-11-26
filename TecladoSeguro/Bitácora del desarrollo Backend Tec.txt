@@ -275,5 +275,41 @@ o	Creación de la lista de verificadores Grupo 13 UNSO con los primeros 3 correo
 o	Subida del app-release.aab, carga de notas de versión y publicación exitosa en Prueba interna (visible temporalmente en Play Store como com.tfi.tecladoseguro (unreviewed)). 
 
 
+Fase 15:
+
+1. Corrección de crash y lanzamiento de la versión 3 (1.2)
+Se resolvió el error crítico al iniciar la app (IllegalAccessError generado por ofuscación) desactivando R8 en la compilación release (app/build.gradle.kts).
+
+Se generó y subió el nuevo App Bundle (app-release.aab) como versión 3 (1.2) en el canal de Prueba interna de Google Play Console (4,04 MB).
+
+Se publicó la versión y se validó su instalación y apertura correcta en el dispositivo físico (Motorola Edge 60 Pro), confirmando la eliminación del cierre inesperado.
+
+2. Control de versiones y distribución al equipo
+Se sincronizaron los cambios en el repositorio de GitHub mediante git push origin main.
+
+Se agregaron los correos de Gmail faltantes a la lista de verificadores internos y se notificó al equipo para actualizar a la versión 1.2.
+
+Se identificó la causa del error «No se encontró el elemento» reportado por un integrante (cuenta de Gmail no coincidente en Play Store o invitación pendiente de aceptación en navegador) y se definieron los pasos de solución.
+
+3. Configuración obligatoria en Google Play Console (10 de 11 tareas)
+Política de privacidad: Publicada en la web desde Google Docs (enlace /pub de solo lectura) y vinculada en la consola.
+
+Detalles de acceso: Configurado sin restricciones de acceso (No).
+
+Anuncios: Declarado sin anuncios (No).
+
+Clasificación de contenido (IARC): Completada y aprobada para todo público (L, E, PEGI 3, IARC 3+).
+
+Público objetivo: Configurado para Mayores de 18 años (sin bloqueo opcional de menores).
+
+Seguridad de los datos: Declarado sin recopilación ni compartición de datos (procesamiento 100 % local).
+
+Apps gubernamentales, Funciones financieras y Salud: Declaradas como No / ninguna función aplicable.
+
+Categoría y contacto: Configurada como Aplicación > Herramientas con correo de contacto público.
+
+Ficha de Play Store (pendiente — en borrador): Se cargaron el nombre (Teclado Seguro), la descripción breve y la descripción completa, quedando guardada en borrador a la espera de los gráficos.
+
+
 
 
